@@ -5,8 +5,8 @@
 
 import math
 import numpy as np
-import transform
-import inout
+from pysixd import transform
+from pysixd import inout
 
 def fibonacci_sampling(n_pts, radius=1):
     '''
@@ -224,6 +224,10 @@ def sample_views(min_n_views, radius=1,
 
         # Translation vector
         t = -R.dot(np.array(pt).reshape((3, 1)))
+        t[0] += 30
+        t[1] += 20
+
+        print(t)
 
         views.append({'R': R, 't': t})
 
