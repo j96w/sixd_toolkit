@@ -7,6 +7,7 @@ import math
 import numpy as np
 from pysixd import transform
 from pysixd import inout
+from pysixd.transformations import random_rotation_matrix
 
 def fibonacci_sampling(n_pts, radius=1):
     '''
@@ -224,6 +225,78 @@ def sample_views(min_n_views, radius=1,
 
         # Translation vector
         t = -R.dot(np.array(pt).reshape((3, 1)))
+        # t[0] += 30
+        # t[1] += 20
+        # print(t)
+
+        views.append({'R': R, 't': t})
+
+    return views, pts_level
+
+
+def sample_video(min_n_views, radius=1,
+                 azimuth_range=(0, 2 * math.pi),
+                 elev_range=(-0.5 * math.pi, 0.5 * math.pi)):
+    '''
+    Viewpoint sampling from a view sphere.
+
+    :param min_n_views: Minimum required number of views on the whole view sphere.
+    :param radius: Radius of the view sphere.
+    :param azimuth_range: Azimuth range from which the viewpoints are sampled.
+    :param elev_range: Elevation range from which the viewpoints are sampled.
+    :return: List of views, each represented by a 3x3 rotation matrix and
+             a 3x1 translation vector.
+    '''
+
+    # Get points on a sphere
+    if True:
+        pts, pts_level = hinter_sampling(min_n_views, radius=radius)
+    else:
+        pts = fibonacci_sampling(min_n_views + 1, radius=radius)
+        pts_level = [0 for _ in range(len(pts))]
+
+    views = []
+    for pt in pts:
+        # Azimuth from (0, 2 * pi)
+        azimuth = math.atan2(pt[1], pt[0])
+        if azimuth < 0:
+            azimuth += 2.0 * math.pi
+
+        # Elevation from (-0.5 * pi, 0.5 * pi)
+        a = np.linalg.norm(pt)
+        b = np.linalg.norm([pt[0], pt[1], 0])
+        elev = math.acos(b / a)
+        if pt[2] < 0:
+            elev = -elev
+
+        # if hemisphere and (pt[2] < 0 or pt[0] < 0 or pt[1] < 0):
+        if not (azimuth_range[0] <= azimuth <= azimuth_range[1] and
+                elev_range[0] <= elev <= elev_range[1]):
+            continue
+
+        # Rotation matrix
+        # The code was adopted from gluLookAt function (uses OpenGL coordinate system):
+        # [1] http://stackoverflow.com/questions/5717654/glulookat-explanation
+        # [2] https://www.opengl.org/wiki/GluLookAt_code
+        f = -np.array(pt) # Forward direction
+        f /= np.linalg.norm(f)
+        u = np.array([0.0, 0.0, 1.0]) # Up direction
+        s = np.cross(f, u) # Side direction
+        if np.count_nonzero(s) == 0:
+            # f and u are parallel, i.e. we are looking along or against Z axis
+            s = np.array([1.0, 0.0, 0.0])
+        s /= np.linalg.norm(s)
+        u = np.cross(s, f) # Recompute up
+        R = np.array([[s[0], s[1], s[2]],
+                      [u[0], u[1], u[2]],
+                      [-f[0], -f[1], -f[2]]])
+
+        # Convert from OpenGL to OpenCV coordinate system
+        R_yz_flip = transform.rotation_matrix(math.pi, [1, 0, 0])[:3, :3]
+        R = R_yz_flip.dot(R)
+
+        # Translation vector
+        t = -R.dot(np.array(pt).reshape((3, 1)))
         t[0] += 30
         t[1] += 20
 
@@ -232,6 +305,7 @@ def sample_views(min_n_views, radius=1,
         views.append({'R': R, 't': t})
 
     return views, pts_level
+
 
 def save_vis(path, views, views_level=None):
     '''

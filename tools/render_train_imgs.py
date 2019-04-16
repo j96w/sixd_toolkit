@@ -8,12 +8,14 @@ import sys
 import math
 import numpy as np
 import cv2
+import copy
 # import scipy.misc
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from pysixd import view_sampler, inout, misc, renderer
 
 from params.dataset_params import get_dataset_params
+from pysixd.pose_change import pose_change
 
 dataset = 'hinterstoisser'
 # dataset = 'tless'
@@ -87,7 +89,7 @@ obj_ids = range(1, par['obj_count'] + 1)
 
 # Minimum required number of views on the whole view sphere. The final number of
 # views depends on the sampling method.
-min_n_views = 1000
+min_n_views = 700
 
 clip_near = 10 # [mm]
 clip_far = 10000 # [mm]
@@ -122,6 +124,9 @@ for obj_id in obj_ids:
     # Load model
     model_path = par['model_mpath'].format(obj_id)
     model = inout.load_ply(model_path)
+    ori_model = copy.deepcopy(model)
+
+    pose_changer = pose_change()
 
     # Load model texture
     if par['model_texture_mpath']:
@@ -141,11 +146,14 @@ for obj_id in obj_ids:
         view_sampler.save_vis(out_views_vis_mpath.format(str(radius)),
                               views, views_level)
 
+        view = views[0]
+        view_id = 0
+
         # Render the object model from all the views
-        for view_id, view in enumerate(views):
-            if view_id % 10 == 0:
-                print('obj,radius,view: ' + str(obj_id) +
-                      ',' + str(radius) + ',' + str(view_id))
+        for frame_id in range(3000):
+            # print(frame_id, ori_model)
+            model = copy.deepcopy(ori_model)
+            model, R, T = pose_changer.step(model, frame_id)
 
             # Render depth image
             depth = renderer.render(model, par['cam']['im_size'], par['cam']['K'],
@@ -180,12 +188,19 @@ for obj_id in obj_ids:
                 #'sphere_radius': float(radius)
             }
 
+            R_cam = np.array([[1.0, 0.0, 0.0],[0.0, -1.0, 0.0],[0.0, 0.0, -1.0]])
+            t_cam = np.array([0, 0, 400])
+
+            # R = np.dot()
+
             obj_gt[im_id] = [{
-                'cam_R_m2c': view['R'].flatten().tolist(),
-                'cam_t_m2c': view['t'].flatten().tolist(),
+                'cam_R_m2c': R.flatten().tolist(),
+                'cam_t_m2c': T.flatten().tolist(),
                 'obj_bb': [int(x) for x in obj_bb],
                 'obj_id': int(obj_id)
             }]
+
+            print(obj_gt[im_id])
 
             im_id += 1
 

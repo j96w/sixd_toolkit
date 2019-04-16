@@ -3,8 +3,8 @@ import numpy as np
 import scipy.misc
 import scipy.io as scio
 
-obj_root = "/media/psf/Home/Desktop/YCB/YCB_models/002_master_chef_can"
-obj_id = 1
+obj_root = "/Users/jeremywang/Desktop/YCB/YCB_models/061_foam_brick"
+obj_id = 21
 
 fw = open('{0}/obj_{1}.ply'.format(obj_root, '%02d' % obj_id), 'w')
 input_file = open('{0}/obj.ply'.format(obj_root), 'r')
