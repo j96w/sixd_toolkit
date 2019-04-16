@@ -227,7 +227,7 @@ def sample_views(min_n_views, radius=1,
         t[0] += 30
         t[1] += 20
 
-        print(t)
+        # print(t)
 
         views.append({'R': R, 't': t})
 
