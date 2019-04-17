@@ -7,7 +7,7 @@ import scipy.misc
 import scipy.io as scio
 import numpy as np
 
-dep = np.array(Image.open('/Users/jeremywang/Desktop/output/render/01/depth/0000.png'))
+dep = np.array(Image.open('/Users/jeremywang/Desktop/output/render/02/depth/0000.png'))
 
 cam_cx = 325.26110
 cam_cy = 242.04899
@@ -47,15 +47,40 @@ cloud = np.concatenate((pt0, pt1, pt2), axis=1)
 
 
 
-R = [[1.0, 0.0, 0.0], 
-    [0.0, -1.0, 0.0],
-    [0.0, 0.0, -1.0]]
-R = np.array(R)
-t = np.array([0, 0, 400])
+# R = [[1.0, 0.0, 0.0], 
+#     [0.0, -1.0, 0.0],
+#     [0.0, 0.0, -1.0]]
+# R = np.array(R)
+# t = np.array([0, 0, 400])
 
-cloud = np.dot(np.dot(cloud - t, R) - t, R)
+# cloud = np.dot(cloud - t, R)
 
 fw = open('/Users/jeremywang/Desktop/aaa_cld.xyz', 'w')
 for it in cloud:
    fw.write('{0} {1} {2}\n'.format(it[0], it[1], it[2]))
 fw.close()
+
+pose = np.load('/Users/jeremywang/Desktop/output/render/02/pose/0000.npy')
+# print(pose.tolist())
+R = pose[()]['R']
+T = pose[()]['T']
+
+input_file = open('/Users/jeremywang/Desktop/YCB/YCB_models/003_cracker_box/obj_02.xyz')
+cld = []
+while 1:
+    input_line = input_file.readline()
+    if not input_line:
+        break
+    input_line = input_line[:-1].split(' ')
+    cld.append([float(input_line[0]), float(input_line[1]), float(input_line[2])])
+cld = np.array(cld)
+
+cld = np.dot(cld, R.T) + T
+
+
+fw = open('/Users/jeremywang/Desktop/bbb_cld.xyz', 'w')
+for it in cld:
+   fw.write('{0} {1} {2}\n'.format(it[0], it[1], it[2]))
+fw.close()
+
+scipy.misc.imsave('/Users/jeremywang/Desktop/0000_2.png', dep)

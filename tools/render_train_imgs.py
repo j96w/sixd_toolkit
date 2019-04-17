@@ -105,6 +105,7 @@ ssaa_fact = 4
 # Output path masks
 out_rgb_mpath = '../output/render/{:02d}/rgb/{:04d}.png'
 out_depth_mpath = '../output/render/{:02d}/depth/{:04d}.png'
+out_pose_mpath = '../output/render/{:02d}/pose/{:04d}.npy'
 out_obj_info_path = '../output/render/{:02d}/info.yml'
 out_obj_gt_path = '../output/render/{:02d}/gt.yml'
 out_views_vis_mpath = '../output/render/views_radius={}.ply'
@@ -120,6 +121,7 @@ for obj_id in obj_ids:
     # Prepare folders
     misc.ensure_dir(os.path.dirname(out_rgb_mpath.format(obj_id, 0)))
     misc.ensure_dir(os.path.dirname(out_depth_mpath.format(obj_id, 0)))
+    misc.ensure_dir(os.path.dirname(out_pose_mpath.format(obj_id, 0)))
 
     # Load model
     model_path = par['model_mpath'].format(obj_id)
@@ -150,8 +152,8 @@ for obj_id in obj_ids:
         view_id = 0
 
         # Render the object model from all the views
-        for frame_id in range(3000):
-            # print(frame_id, ori_model)
+        for frame_id in range(2000):
+            print(obj_id, frame_id)
             model = copy.deepcopy(ori_model)
             model, R, T = pose_changer.step(model, frame_id)
 
@@ -174,9 +176,19 @@ for obj_id in obj_ids:
             rgb = cv2.resize(rgb, par['cam']['im_size'], interpolation=cv2.INTER_AREA)
             #rgb = scipy.misc.imresize(rgb, par['cam']['im_size'][::-1], 'bicubic')
 
+
+            R_cam = np.array([[1.0, 0.0, 0.0],[0.0, -1.0, 0.0],[0.0, 0.0, -1.0]])
+            t_cam = np.array([0, 0, 400])
+
+            R = np.dot(R_cam, R)
+            T = t_cam + np.dot(T, R_cam.T)
+
+
             # Save the rendered images
             inout.save_im(out_rgb_mpath.format(obj_id, im_id), rgb)
             inout.save_depth(out_depth_mpath.format(obj_id, im_id), depth)
+            inout.save_pose(out_pose_mpath.format(obj_id, im_id), R, T)
+
 
             # Get 2D bounding box of the object model at the ground truth pose
             ys, xs = np.nonzero(depth > 0)
@@ -188,11 +200,6 @@ for obj_id in obj_ids:
                 #'sphere_radius': float(radius)
             }
 
-            R_cam = np.array([[1.0, 0.0, 0.0],[0.0, -1.0, 0.0],[0.0, 0.0, -1.0]])
-            t_cam = np.array([0, 0, 400])
-
-            # R = np.dot()
-
             obj_gt[im_id] = [{
                 'cam_R_m2c': R.flatten().tolist(),
                 'cam_t_m2c': T.flatten().tolist(),
@@ -200,7 +207,7 @@ for obj_id in obj_ids:
                 'obj_id': int(obj_id)
             }]
 
-            print(obj_gt[im_id])
+            # print(obj_gt[im_id])
 
             im_id += 1
 

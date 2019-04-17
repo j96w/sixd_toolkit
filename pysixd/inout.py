@@ -72,6 +72,11 @@ def save_depth(path, im):
     with open(path, 'wb') as f:
         w_depth.write(f, np.reshape(im_uint16, (-1, im.shape[1])))
 
+def save_pose(path, R, T):
+    pose = {'R':R, 'T':T}
+    np.save(path, pose)
+    print(pose)
+
 def load_info(path):
     with open(path, 'r') as f:
         info = yaml.load(f, Loader=yaml.CLoader)

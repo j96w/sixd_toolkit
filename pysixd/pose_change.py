@@ -21,7 +21,7 @@ class pose_change():
         self.a_y = 0.0
         self.a_z = 0.0
 
-        self.bound_x = [-200.0, 200.0]
+        self.bound_x = [-250.0, 200.0]
         self.bound_y = [-200.0, 200.0]
         self.bound_z = [-500.0, 10.0]
 
@@ -59,13 +59,13 @@ class pose_change():
         self.Ra_y = 0.0
         self.Ra_z = 0.0
 
-        self.Rbound_vx = [-math.pi/28.0, math.pi/28.0]
-        self.Rbound_vy = [-math.pi/28.0, math.pi/28.0]
-        self.Rbound_vz = [-math.pi/28.0, math.pi/28.0]
+        self.Rbound_vx = [-math.pi/100.0, math.pi/100.0]
+        self.Rbound_vy = [-math.pi/100.0, math.pi/100.0]
+        self.Rbound_vz = [-math.pi/100.0, math.pi/100.0]
 
-        self.Rbound_ax = [-math.pi/180.0, math.pi/180.0]
-        self.Rbound_ay = [-math.pi/180.0, math.pi/180.0]
-        self.Rbound_az = [-math.pi/180.0, math.pi/180.0]
+        self.Rbound_ax = [-math.pi/1000.0, math.pi/1000.0]
+        self.Rbound_ay = [-math.pi/1000.0, math.pi/1000.0]
+        self.Rbound_az = [-math.pi/1000.0, math.pi/1000.0]
 
         self.Rx_x = random.uniform(-math.pi, math.pi)
         self.Rx_y = random.uniform(-math.pi, math.pi)
@@ -127,6 +127,39 @@ class pose_change():
                 self.v_z = -self.v_z
             if self.x_z > self.bound_z[1]:
                 self.v_z = -self.v_z
+
+
+            if self.v_x < self.bound_vx[0]:
+                self.a_x = self.bound_ax[1]
+            if self.v_x > self.bound_vx[1]:
+                self.a_x = self.bound_ax[0]
+
+            if self.v_y < self.bound_vy[0]:
+                self.a_y = self.bound_ay[1]
+            if self.v_y > self.bound_vy[1]:
+                self.a_y = self.bound_ay[0]
+
+            if self.v_z < self.bound_vz[0]:
+                self.a_z = self.bound_az[1]
+            if self.v_z > self.bound_vz[1]:
+                self.a_z = self.bound_az[0]
+
+
+            if self.Rv_x < self.Rbound_vx[0]:
+                self.Ra_x = self.Rbound_ax[1]
+            if self.Rv_x > self.Rbound_vx[1]:
+                self.Ra_x = self.Rbound_ax[0]
+
+            if self.Rv_y < self.Rbound_vy[0]:
+                self.Ra_y = self.Rbound_ay[1]
+            if self.Rv_y > self.Rbound_vy[1]:
+                self.Ra_y = self.Rbound_ay[0]
+
+            if self.Rv_z < self.Rbound_vz[0]:
+                self.Ra_z = self.Rbound_az[1]
+            if self.Rv_z > self.Rbound_vz[1]:
+                self.Ra_z = self.Rbound_az[0]
+
 
             R = euler_matrix(self.Rx_x, self.Rx_y, self.Rx_z)[:3, :3]
             t = np.array([self.x_x, self.x_y, self.x_z])
