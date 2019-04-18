@@ -21,8 +21,8 @@ class pose_change():
         self.a_y = 0.0
         self.a_z = 0.0
 
-        self.bound_x = [-250.0, 200.0]
-        self.bound_y = [-200.0, 200.0]
+        self.bound_x = [-200.0, 170.0]
+        self.bound_y = [-180.0, 170.0]
         self.bound_z = [-500.0, 10.0]
 
         self.bound_vx = [-10.0, 10.0]

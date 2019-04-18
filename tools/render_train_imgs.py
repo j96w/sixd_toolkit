@@ -85,7 +85,7 @@ elif dataset == 'doumanoglou':
 par = get_dataset_params(dataset, model_type=model_type, cam_type=cam_type)
 
 # Objects to render
-obj_ids = range(1, par['obj_count'] + 1)
+obj_ids = range(7, par['obj_count'] + 1)
 
 # Minimum required number of views on the whole view sphere. The final number of
 # views depends on the sampling method.
